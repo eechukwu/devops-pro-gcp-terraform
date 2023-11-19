@@ -28,8 +28,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-
-      # Explicitly run 'terraform init' in the correct directory
       - name: Terraform Initialize
         run: terraform init
         working-directory: ./terraform/environments/dev
@@ -40,12 +38,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Terraform Format with Debug Logging
-        run: |
-          export TF_LOG=DEBUG
-          terraform fmt
-          git diff --exit-code || (git add . && git config --global user.name 'Your Name' && git config --global user.email 'your-email@example.com' && git commit -m "Automated Terraform fmt" && git push)
+      - name: Terraform Format
+        run: terraform fmt
         working-directory: ./terraform/environments/dev
+      - name: Commit Changes
+        run: |
+          git diff --exit-code || (git add . && git config --global user.name 'Your Name' && git config --global user.email 'your-email@example.com' && git commit -m "Automated Terraform fmt" && git push)
 
   terraform-plan:
     name: Terraform Plan
@@ -53,21 +51,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      # Explicitly run 'terraform init' again before 'terraform plan'
-      - name: Terraform Initialize
-        run: terraform init
+      - name: Terraform Plan
+        run: terraform plan
         working-directory: ./terraform/environments/dev
-
-      # Configure Terraform provider using secrets
-      - name: Configure Terraform Provider
-        run: echo "provider \"google\" {\n  credentials = base64decode(\n    \"${{ secrets.GCP_SA_KEY }}\"\n  )\n  project = \"gcp-devops-pro-405617\"\n}" > ./terraform/environments/dev/providers.tf
-
-      - name: Terraform Plan with Debug Logging
-        run: |
-          export TF_LOG=DEBUG
-          terraform plan
-        working-directory: ./terraform/environments/dev
+        env:
+          TF_LOG: DEBUG
 
   terraform-apply:
     name: Terraform Apply
@@ -76,18 +64,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      # Explicitly run 'terraform init' again before 'terraform apply'
-      - name: Terraform Initialize
-        run: terraform init
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
         working-directory: ./terraform/environments/dev
-
-      # Configure Terraform provider using secrets
-      - name: Configure Terraform Provider
-        run: echo "provider \"google\" {\n  credentials = base64decode(\n    \"${{ secrets.GCP_SA_KEY }}\"\n  )\n  project = \"gcp-devops-pro-405617\"\n}" > ./terraform/environments/dev/providers.tf
-
-      - name: Terraform Apply with Debug Logging
-        run: |
-          export TF_LOG=DEBUG
-          terraform apply -auto-approve
-        working-directory: ./terraform/environments/dev
+        env:
+          TF_LOG: DEBUG
