@@ -9,77 +9,42 @@ on:
       - main
 
 jobs:
-  setup-gcloud:
-    name: Setup Google Cloud
+  terraform:
+    name: Terraform CI/CD
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Google Cloud
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Google Cloud
         uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           project_id: gcp-devops-pro-405617
 
-  terraform-init:
-    name: Terraform Initialize
-    needs: setup-gcloud
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: '1.1.0' # Specify the Terraform version
 
-      # Explicitly run 'terraform init' in the correct directory
-      - name: Terraform Initialize
+      - name: Terraform Init
         run: terraform init
         working-directory: ./terraform/environments/dev
 
-  terraform-fmt:
-    name: Terraform Format and Commit
-    needs: terraform-init
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Terraform Format with Debug Logging
-        run: |
-          export TF_LOG=DEBUG
-          terraform fmt
-          git diff --exit-code || (git add . && git config --global user.name 'Your Name' && git config --global user.email 'your-email@example.com' && git commit -m "Automated Terraform fmt" && git push)
+      - name: Terraform Format
+        run: terraform fmt -check
         working-directory: ./terraform/environments/dev
 
-  terraform-plan:
-    name: Terraform Plan
-    needs: terraform-fmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      # Explicitly run 'terraform init' again before 'terraform plan'
-      - name: Terraform Initialize
-        run: terraform init
+      - name: Terraform Validate
+        run: terraform validate
         working-directory: ./terraform/environments/dev
 
-      - name: Terraform Plan with Debug Logging
-        run: |
-          export TF_LOG=DEBUG
-          terraform plan
+      - name: Terraform Plan
+        run: terraform plan
         working-directory: ./terraform/environments/dev
 
-  terraform-apply:
-    name: Terraform Apply
-    if: github.ref == 'refs/heads/main'
-    needs: terraform-plan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      # Explicitly run 'terraform init' again before 'terraform apply'
-      - name: Terraform Initialize
-        run: terraform init
-        working-directory: ./terraform/environments/dev
-
-      - name: Terraform Apply with Debug Logging
-        run: |
-          export TF_LOG=DEBUG
-          terraform apply -auto-approve
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve
         working-directory: ./terraform/environments/dev
