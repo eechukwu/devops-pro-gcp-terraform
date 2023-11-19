@@ -9,62 +9,36 @@ on:
       - main
 
 jobs:
-  setup-gcloud:
-    name: Setup Google Cloud
+  terraform:
+    name: Terraform
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
       - name: Set up Google Cloud
         uses: google-github-actions/setup-gcloud@v0
         with:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           project_id: gcp-devops-pro-405617
-      - name: Export Google Application Credentials
-        run: echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth.outputs.credentials_file_path }}" >> $GITHUB_ENV
 
-  terraform-init:
-    name: Terraform Initialize
-    needs: setup-gcloud
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-      - run: terraform init
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-        working-directory: ./terraform/
 
-  terraform-fmt:
-    name: Terraform Format Check
-    needs: terraform-init
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: terraform fmt -check
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-        working-directory: ./terraform/
+      - name: Terraform Initialize
+        run: terraform init
+        working-directory: ./terraform/environments/dev
 
-  terraform-plan:
-    name: Terraform Plan
-    needs: terraform-fmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: terraform plan
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-        working-directory: ./terraform/
+      - name: Terraform Format Check
+        run: terraform fmt -check
+        working-directory: ./terraform/environments/dev
 
-  terraform-apply:
-    name: Terraform Apply
-    if: github.ref == 'refs/heads/main'
-    needs: terraform-plan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: terraform apply -auto-approve
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-        working-directory: ./terraform/
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./terraform/environments/dev
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve
+        working-directory: ./terraform/environments/dev
