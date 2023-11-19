@@ -28,10 +28,10 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-      - name: Terraform Initialize with Debug Logging
-        run: |
-          export TF_LOG=DEBUG
-          terraform init
+
+      # Explicitly run 'terraform init' in the correct directory
+      - name: Terraform Initialize
+        run: terraform init
         working-directory: ./terraform/environments/dev
 
   terraform-fmt:
@@ -53,6 +53,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      # Explicitly run 'terraform init' again before 'terraform plan'
+      - name: Terraform Initialize
+        run: terraform init
+        working-directory: ./terraform/environments/dev
+
       - name: Terraform Plan with Debug Logging
         run: |
           export TF_LOG=DEBUG
@@ -66,6 +72,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      # Explicitly run 'terraform init' again before 'terraform apply'
+      - name: Terraform Initialize
+        run: terraform init
+        working-directory: ./terraform/environments/dev
+
       - name: Terraform Apply with Debug Logging
         run: |
           export TF_LOG=DEBUG
