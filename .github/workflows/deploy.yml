@@ -12,8 +12,6 @@ jobs:
   setup-gcloud:
     name: Setup Google Cloud
     runs-on: ubuntu-latest
-    outputs:
-      gcp_project: ${{ steps.set_env.outputs.gcp_project }}
     steps:
     - uses: actions/checkout@v2
     - name: Set up Google Cloud
@@ -21,9 +19,6 @@ jobs:
       with:
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         project_id: gcp-devops-pro-405617
-    - name: Set GCP Project ID Env
-      id: set_env
-      run: echo "::set-output name=gcp_project::$(gcloud config get-value project)"
 
   terraform-init:
     name: Terraform Initialize
@@ -36,9 +31,6 @@ jobs:
     - name: Terraform Initialize
       run: terraform init
       working-directory: ./terraform/environments/dev
-    - name: Terraform Initialize Modules
-      run: terraform init
-      working-directory: ./terraform/modules/compute_instance
 
   terraform-fmt:
     name: Terraform Format and Commit
