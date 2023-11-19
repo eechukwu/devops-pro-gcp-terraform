@@ -10,6 +10,10 @@ jobs:
     name: Terraform CI/CD  # Name of the job
     runs-on: ubuntu-latest  # Specifies the operating system for the job
 
+    strategy:
+      matrix:
+        resource: [compute_instance]  # Specify the resource names you want to deploy
+
     steps:
       - name: Checkout Repository  # Step to check out the repository
         uses: actions/checkout@v2
@@ -35,11 +39,10 @@ jobs:
         working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
 
       - name: Terraform Plan  # Step to create an execution plan
-        run: terraform plan
+        run: terraform plan -target=module.${{ matrix.resource }}
         working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
 
       - name: Terraform Apply  # Step to apply the Terraform execution plan
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'  # Condition to run the step
-        run: terraform apply -auto-approve
+        run: terraform apply -target=module.${{ matrix.resource }} -auto-approve
         working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
-
