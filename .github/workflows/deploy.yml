@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        resource: [compute_instance]  # Specify the resource names you want to deploy
+        resource: [compute_instance, network]  # Specify the resource names you want to deploy
 
     steps:
       - name: Checkout Repository  # Step to check out the repository
