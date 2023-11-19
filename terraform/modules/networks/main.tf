@@ -1,6 +1,6 @@
 # Define your provider (GCP)
 provider "google" {
-  project = var.project_id
+  project = "gcp-devops-pro-405617"
   region  = "us-central1"  # Change to your desired region
 }
 
