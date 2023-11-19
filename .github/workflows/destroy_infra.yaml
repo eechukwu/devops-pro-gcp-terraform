@@ -28,6 +28,14 @@ jobs:
         run: terraform init
         working-directory: ./terraform/environments/dev
 
-      - name: Terraform Destroy
-        run: terraform destroy -auto-approve
+      - name: Terraform Refresh
+        run: terraform refresh
         working-directory: ./terraform/environments/dev
+
+      - name: Terraform Destroy
+        run: |
+          export TF_LOG=DEBUG
+          terraform destroy -auto-approve
+        working-directory: ./terraform/environments/dev
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
