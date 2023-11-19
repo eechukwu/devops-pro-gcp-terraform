@@ -1,0 +1,33 @@
+name: Terraform Destroy
+
+on:
+  workflow_dispatch:  # Allows manual triggering of the workflow
+
+jobs:
+  terraform-destroy:
+    name: Destroy Terraform Infrastructure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: gcp-devops-pro-405617
+          export_default_credentials: true
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: '1.1.0' # Adjust the version as needed
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform/environments/dev
+
+      - name: Terraform Destroy
+        run: terraform destroy -auto-approve
+        working-directory: ./terraform/environments/dev
