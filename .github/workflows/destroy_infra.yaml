@@ -1,11 +1,7 @@
 name: Terraform Destroy
 
 on:
-  workflow_dispatch:
-    inputs:
-      gcp_credentials:
-        description: 'GCP Service Account Key (JSON format)'
-        required: true
+  workflow_dispatch:  # Allows manual triggering from the GitHub UI
 
 jobs:
   terraform-destroy:
@@ -19,33 +15,21 @@ jobs:
       - name: Setup Google Cloud
         uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ github.event.inputs.gcp_credentials }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
           project_id: gcp-devops-pro-405617
           export_default_credentials: true
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: '1.1.0'
-
-      - name: Create Credentials File
-        run: echo '${{ github.event.inputs.gcp_credentials }}' > gcp_credentials.json
-        working-directory: ./terraform/environments/dev
+          terraform_version: '1.1.0' # Adjust the version as needed
 
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform/environments/dev
-        env:
-          TF_VAR_gcp_credentials: ${{ github.event.inputs.gcp_credentials }}
-
-      - name: Terraform Refresh
-        run: terraform refresh
-        working-directory: ./terraform/environments/dev
-        env:
-          TF_VAR_gcp_credentials: ${{ github.event.inputs.gcp_credentials }}
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
         working-directory: ./terraform/environments/dev
         env:
-          TF_VAR_gcp_credentials: ${{ github.event.inputs.gcp_credentials }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
