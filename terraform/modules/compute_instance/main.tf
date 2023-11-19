@@ -5,7 +5,7 @@ resource "google_compute_instance" "default" {
 
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = "debian-11-bullseye-arm64-v20231115"
     }
   }
 
