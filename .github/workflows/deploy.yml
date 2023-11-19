@@ -41,3 +41,7 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
         working-directory: ./terraform/environments/dev
+
+      - name: Terraform Destroy
+        run: terraform apply -auto-approve
+        working-directory: ./terraform/environments/dev
