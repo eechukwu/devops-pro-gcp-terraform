@@ -28,6 +28,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
+
+      # Explicitly run 'terraform init' in the correct directory
       - name: Terraform Initialize
         run: terraform init
         working-directory: ./terraform/environments/dev
@@ -38,12 +40,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Terraform Format
-        run: terraform fmt
-        working-directory: ./terraform/environments/dev
-      - name: Commit Changes
+      - name: Terraform Format with Debug Logging
         run: |
+          export TF_LOG=DEBUG
+          terraform fmt
           git diff --exit-code || (git add . && git config --global user.name 'Your Name' && git config --global user.email 'your-email@example.com' && git commit -m "Automated Terraform fmt" && git push)
+        working-directory: ./terraform/environments/dev
 
   terraform-plan:
     name: Terraform Plan
@@ -51,11 +53,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Terraform Plan
-        run: terraform plan
+
+      # Explicitly run 'terraform init' again before 'terraform plan'
+      - name: Terraform Initialize
+        run: terraform init
         working-directory: ./terraform/environments/dev
-        env:
-          TF_LOG: DEBUG
+
+      - name: Terraform Plan with Debug Logging
+        run: |
+          export TF_LOG=DEBUG
+          terraform plan
+        working-directory: ./terraform/environments/dev
 
   terraform-apply:
     name: Terraform Apply
@@ -64,8 +72,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
+
+      # Explicitly run 'terraform init' again before 'terraform apply'
+      - name: Terraform Initialize
+        run: terraform init
         working-directory: ./terraform/environments/dev
-        env:
-          TF_LOG: DEBUG
+
+      - name: Terraform Apply with Debug Logging
+        run: |
+          export TF_LOG=DEBUG
+          terraform apply -auto-approve
+        working-directory: ./terraform/environments/dev
