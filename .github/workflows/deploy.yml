@@ -59,6 +59,10 @@ jobs:
         run: terraform init
         working-directory: ./terraform/environments/dev
 
+      # Configure Terraform provider using secrets
+      - name: Configure Terraform Provider
+        run: echo "provider \"google\" {\n  credentials = base64decode(\n    \"${{ secrets.GCP_SA_KEY }}\"\n  )\n  project = \"gcp-devops-pro-405617\"\n}" > ./terraform/environments/dev/providers.tf
+
       - name: Terraform Plan with Debug Logging
         run: |
           export TF_LOG=DEBUG
@@ -77,6 +81,10 @@ jobs:
       - name: Terraform Initialize
         run: terraform init
         working-directory: ./terraform/environments/dev
+
+      # Configure Terraform provider using secrets
+      - name: Configure Terraform Provider
+        run: echo "provider \"google\" {\n  credentials = base64decode(\n    \"${{ secrets.GCP_SA_KEY }}\"\n  )\n  project = \"gcp-devops-pro-405617\"\n}" > ./terraform/environments/dev/providers.tf
 
       - name: Terraform Apply with Debug Logging
         run: |
