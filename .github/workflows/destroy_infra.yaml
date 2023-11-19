@@ -1,7 +1,7 @@
 name: Terraform Destroy
 
 on:
-  workflow_dispatch:  # Allows manual triggering of the workflow
+  workflow_dispatch:  # Allows manual triggering from the GitHub UI
 
 jobs:
   terraform-destroy:
@@ -22,11 +22,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: '1.1.0' # Adjust the version as needed
-
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform/environments/dev
+          terraform_version: '1.1.0'
 
       - name: Terraform Destroy
         run: terraform destroy -auto-approve
