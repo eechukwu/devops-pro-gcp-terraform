@@ -9,36 +9,59 @@ on:
       - main
 
 jobs:
-  terraform:
-    name: Terraform
+  setup-gcloud:
+    name: Setup Google Cloud
     runs-on: ubuntu-latest
-
+    outputs:
+      gcp_project: ${{ steps.set_env.outputs.gcp_project }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - uses: actions/checkout@v2
+    - name: Set up Google Cloud
+      uses: google-github-actions/setup-gcloud@v0
+      with:
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        project_id: gcp-devops-pro-405617
+    - name: Set GCP Project ID Env
+      id: set_env
+      run: echo "::set-output name=gcp_project::$(gcloud config get-value project)"
 
-      - name: Set up Google Cloud
-        uses: google-github-actions/setup-gcloud@v0
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: gcp-devops-pro-405617
+  terraform-init:
+    name: Terraform Initialize
+    needs: setup-gcloud
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+    - run: terraform init
+      working-directory: ./terraform/environments/dev
+      env:
+        GOOGLE_PROJECT: ${{ needs.setup-gcloud.outputs.gcp_project }}
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
+  terraform-fmt:
+    name: Terraform Format Check
+    needs: terraform-init
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: terraform fmt -check
+      working-directory: ./terraform/environments/dev
 
-      - name: Terraform Initialize
-        run: terraform init
-        working-directory: ./terraform/environments/dev
+  terraform-plan:
+    name: Terraform Plan
+    needs: terraform-fmt
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: terraform plan
+      working-directory: ./terraform/environments/dev
 
-      - name: Terraform Format Check
-        run: terraform fmt -check
-        working-directory: ./terraform/environments/dev
-
-      - name: Terraform Plan
-        run: terraform plan
-        working-directory: ./terraform/environments/dev
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
-        working-directory: ./terraform/environments/dev
+  terraform-apply:
+    name: Terraform Apply
+    if: github.ref == 'refs/heads/main'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: terraform apply -auto-approve
+      working-directory: ./terraform/environments/dev
