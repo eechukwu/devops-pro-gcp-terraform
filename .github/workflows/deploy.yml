@@ -13,51 +13,51 @@ jobs:
     name: Setup Google Cloud
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Google Cloud
-      uses: google-github-actions/setup-gcloud@v0
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: gcp-devops-pro-405617
+      - uses: actions/checkout@v2
+      - name: Set up Google Cloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: gcp-devops-pro-405617
 
   terraform-init:
     name: Terraform Initialize
     needs: setup-gcloud
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-    - name: Terraform Initialize with Debug Logging
-      run: |
-        export TF_LOG=DEBUG
-        terraform init
-      working-directory: ./terraform/environments/dev
+      - uses: actions/checkout@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+      - name: Terraform Initialize with Debug Logging
+        run: |
+          export TF_LOG=DEBUG
+          terraform init
+        working-directory: ./terraform/environments/dev
 
   terraform-fmt:
     name: Terraform Format and Commit
     needs: terraform-init
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Terraform Format with Debug Logging
-      run: |
-        export TF_LOG=DEBUG
-        terraform fmt
-        git diff --exit-code || (git add . && git config --global user.name 'Your Name' && git config --global user.email 'your-email@example.com' && git commit -m "Automated Terraform fmt" && git push)
-      working-directory: ./terraform/environments/dev
+      - uses: actions/checkout@v2
+      - name: Terraform Format with Debug Logging
+        run: |
+          export TF_LOG=DEBUG
+          terraform fmt
+          git diff --exit-code || (git add . && git config --global user.name 'Your Name' && git config --global user.email 'your-email@example.com' && git commit -m "Automated Terraform fmt" && git push)
+        working-directory: ./terraform/environments/dev
 
   terraform-plan:
     name: Terraform Plan
     needs: terraform-fmt
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Terraform Plan with Debug Logging
-      run: |
-        export TF_LOG=DEBUG
-        terraform plan
-      working-directory: ./terraform/environments/dev
+      - uses: actions/checkout@v2
+      - name: Terraform Plan with Debug Logging
+        run: |
+          export TF_LOG=DEBUG
+          terraform plan
+        working-directory: ./terraform/environments/dev
 
   terraform-apply:
     name: Terraform Apply
@@ -65,9 +65,9 @@ jobs:
     needs: terraform-plan
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Terraform Apply with Debug Logging
-      run: |
-        export TF_LOG=DEBUG
-        terraform apply -auto-approve
-      working-directory: ./terraform/environments/dev
+      - uses: actions/checkout@v2
+      - name: Terraform Apply with Debug Logging
+        run: |
+          export TF_LOG=DEBUG
+          terraform apply -auto-approve
+        working-directory: ./terraform/environments/dev
