@@ -20,6 +20,5 @@ provider "google" {
 
 module "network" {
   source     = "../../modules/networks"
-  project_id = "gcp-devops-pro-405617"  # Set the Dev project ID here
 }
 
