@@ -1,73 +1,48 @@
-name: Terraform Deployment
+name: Terraform Deployment  # Name of the GitHub Actions workflow
 
 on:
-  push:
+  push:  # Triggers the workflow on push events to the specified branches
     branches:
       - main
 
 jobs:
   terraform:
-    name: Terraform CI/CD
-    runs-on: ubuntu-latest
+    name: Terraform CI/CD  # Name of the job
+    runs-on: ubuntu-latest  # Specifies the operating system for the job
 
-    # Define a matrix strategy for different types of resources or modules
     strategy:
       matrix:
-        resource: ["network", "compute_instance"]  # Replace with actual module names when you use modules
+        resource: [compute_instance, network]  # Specify the resource names you want to deploy
 
     steps:
-      # Step 1: Checkout the GitHub repository
-      - name: Checkout Repository
+      - name: Checkout Repository  # Step to check out the repository
         uses: actions/checkout@v2
 
-      # Step 2: Setup Google Cloud Environment
-      # This step authenticates to GCP using the provided service account key
-      - name: Setup Google Cloud
+      - name: Setup Google Cloud  # Step to set up Google Cloud
         uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: gcp-devops-pro-405617
-          export_default_credentials: true
+          service_account_key: ${{ secrets.GCP_SA_KEY }}  # Specifies the service account key
+          project_id: gcp-devops-pro-405617  # Specifies the project ID
+          export_default_credentials: true  # Exports default credentials
 
-      # Step 3: Setup Terraform
-      # This step installs the specified version of Terraform
-      - name: Setup Terraform
+      - name: Setup Terraform  # Step to set up Terraform
         uses: hashicorp/setup-terraform@v1
         with:
-          terraform_version: '1.1.0'
+          terraform_version: '1.1.0'  # Specifies the Terraform version
 
-      # Step 4: Cache Terraform Plugins
-      # This step caches the downloaded Terraform plugins to speed up the initialization process
-      - name: Cache Terraform Plugins
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.terraform.d/plugin-cache
-          key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
-          restore-keys: |
-            ${{ runner.os }}-terraform-
+      - name: Terraform Init  # Step to initialize Terraform
+        run: terraform init
+        working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
 
-      # Step 5: Initialize Terraform
-      # This step initializes the Terraform configuration located in the specified directory
-      - name: Terraform Init
-        run: terraform init -input=false -backend=true -plugin-dir=~/.terraform.d/plugin-cache
-        working-directory: ./terraform/environments/dev
-
-      # Step 6: Validate Terraform Configuration
-      # This step validates the Terraform files for syntax errors and consistency
-      - name: Terraform Validate
+      - name: Terraform Validate  # Step to validate Terraform configuration
         run: terraform validate
-        working-directory: ./terraform/environments/dev
+        working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
 
-      # Step 7: Plan Terraform Deployment
-      # This step creates an execution plan for Terraform, targeting specific modules as defined in the matrix
-      - name: Terraform Plan for Specific Resource
+      - name: Terraform Plan  # Step to create an execution plan
         run: terraform plan -target=module.${{ matrix.resource }}
-        working-directory: ./terraform/environments/dev
+        working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
 
-      # Step 8: Apply Terraform Configuration
-      # This step applies the Terraform plan to create or update resources, only on pushes to the main branch
-      - name: Terraform Apply for Specific Resource
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      - name: Terraform Apply  # Step to apply the Terraform execution plan
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'  # Condition to run the step
         run: terraform apply -target=module.${{ matrix.resource }} -auto-approve
-        working-directory: ./terraform/environments/dev
+        working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
