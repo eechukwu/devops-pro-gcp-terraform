@@ -1,7 +1,5 @@
-# Name of the workflow
 name: Terraform Deployment
 
-# Triggers for the workflow: on push or pull request to the main branch
 on:
   push:
     branches:
@@ -10,42 +8,63 @@ on:
     branches:
       - main
 
-# Job definition
 jobs:
-  terraform:
-    # Name of the job
-    name: Terraform
-
-    # Specifies the type of virtual host machine to run the job on
+  setup-gcloud:
+    name: Setup Google Cloud
     runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - name: Set up Google Cloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: gcp-devops-pro-405617
+      - name: Export Google Application Credentials
+        run: echo "GOOGLE_APPLICATION_CREDENTIALS=${{ steps.auth.outputs.credentials_file_path }}" >> $GITHUB_ENV
 
-      # Sets up the Terraform CLI in the GitHub Actions runner environment
+  terraform-init:
+    name: Terraform Initialize
+    needs: setup-gcloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
-        with:
-          # Optional: Terraform Cloud (or Enterprise) API token for remote operations
-          cli_config_credentials_token: ${{ secrets.TERRAFORM_API_TOKEN }}
+      - run: terraform init
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        working-directory: ./terraform/
 
-      # Initializes Terraform, which includes initializing the backend and downloading provider plugins
-      - name: Terraform Initialize
-        run: terraform init
+  terraform-fmt:
+    name: Terraform Format Check
+    needs: terraform-init
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: terraform fmt -check
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        working-directory: ./terraform/
 
-      # Checks if the Terraform code is formatted correctly
-      - name: Terraform Format Check
-        run: terraform fmt -check
+  terraform-plan:
+    name: Terraform Plan
+    needs: terraform-fmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: terraform plan
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        working-directory: ./terraform/
 
-      # Creates a Terraform plan and shows the changes that will be made to your infrastructure
-      - name: Terraform Plan
-        run: terraform plan
-
-      # Applies the Terraform plan to create or update infrastructure.
-      # Note: This step only runs on the 'main' branch to prevent accidental deployments.
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve
+  terraform-apply:
+    name: Terraform Apply
+    if: github.ref == 'refs/heads/main'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: terraform apply -auto-approve
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+        working-directory: ./terraform/
