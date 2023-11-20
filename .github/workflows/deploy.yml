@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        resource: ["network", "compute_instance"]  # Replace with actual module names when you use modules
+        resource: ["network", "compute_instance"]  # Update with actual resource names
 
     steps:
       - name: Checkout Repository
@@ -30,20 +30,19 @@ jobs:
         with:
           terraform_version: '1.1.0'
 
-      - name: Create Plugin Cache Directory
-        run: mkdir -p ~/.terraform.d/plugin-cache
-
       - name: Cache Terraform Plugins
         uses: actions/cache@v2
         with:
           path: |
-            ~/.terraform.d/plugin-cache
+            ./.terraform.d/plugin-cache
           key: ${{ runner.os }}-terraform-${{ hashFiles('**/*.tf') }}
           restore-keys: |
             ${{ runner.os }}-terraform-
 
       - name: Terraform Init
-        run: terraform init -input=false -backend=true -plugin-dir=~/.terraform.d/plugin-cache
+        run: |
+          mkdir -p ./.terraform.d/plugin-cache
+          terraform init -input=false -backend=true -plugin-dir=./.terraform.d/plugin-cache
         working-directory: ./terraform/environments/dev
 
       - name: Terraform Validate
