@@ -44,5 +44,5 @@ jobs:
 
       - name: Terraform Apply for Specific Resource
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -target=module.${{ matrix.resource }} -auto-approve -lock=false
+        run: terraform apply -target=module.${{ matrix.resource }} -auto-approve
         working-directory: ./terraform/environments/dev
