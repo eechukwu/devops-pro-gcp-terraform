@@ -10,18 +10,14 @@ jobs:
     name: Terraform CI/CD
     runs-on: ubuntu-latest
 
-    # Define a matrix strategy for different types of resources or modules
     strategy:
       matrix:
         resource: ["network", "compute_instance"]  # Replace with actual module names when you use modules
 
     steps:
-      # Step 1: Checkout the GitHub repository
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Step 2: Setup Google Cloud Environment
-      # This step authenticates to GCP using the provided service account key
       - name: Setup Google Cloud
         uses: google-github-actions/setup-gcloud@v0
         with:
@@ -29,15 +25,14 @@ jobs:
           project_id: gcp-devops-pro-405617
           export_default_credentials: true
 
-      # Step 3: Setup Terraform
-      # This step installs the specified version of Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: '1.1.0'
 
-      # Step 4: Cache Terraform Plugins
-      # This step caches the downloaded Terraform plugins to speed up the initialization process
+      - name: Create Plugin Cache Directory
+        run: mkdir -p ~/.terraform.d/plugin-cache
+
       - name: Cache Terraform Plugins
         uses: actions/cache@v2
         with:
@@ -47,26 +42,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-terraform-
 
-      # Step 5: Initialize Terraform
-      # This step initializes the Terraform configuration located in the specified directory
       - name: Terraform Init
         run: terraform init -input=false -backend=true -plugin-dir=~/.terraform.d/plugin-cache
         working-directory: ./terraform/environments/dev
 
-      # Step 6: Validate Terraform Configuration
-      # This step validates the Terraform files for syntax errors and consistency
       - name: Terraform Validate
         run: terraform validate
         working-directory: ./terraform/environments/dev
 
-      # Step 7: Plan Terraform Deployment
-      # This step creates an execution plan for Terraform, targeting specific modules as defined in the matrix
       - name: Terraform Plan for Specific Resource
         run: terraform plan -target=module.${{ matrix.resource }}
         working-directory: ./terraform/environments/dev
 
-      # Step 8: Apply Terraform Configuration
-      # This step applies the Terraform plan to create or update resources, only on pushes to the main branch
       - name: Terraform Apply for Specific Resource
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -target=module.${{ matrix.resource }} -auto-approve
