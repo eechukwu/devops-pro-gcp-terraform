@@ -6,7 +6,7 @@ provider "google" {
 
 # Create a VPC network
 resource "google_compute_network" "my_network" {
-  name = "my-vpc-network-devops-2"
+  name = "my-vpc-network-devops-network"
 }
 
 # Create a subnet within the VPC network
