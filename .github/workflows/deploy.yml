@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       modules:
-        description: 'Modules to deploy (e.g., network, compute_instance)'
-        required: true
+        description: 'Modules to deploy (comma-separated, e.g., "network,compute_instance")'
+        required: false
         default: 'all'
 
 jobs:
@@ -14,7 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ROOT: './terraform/environments/dev'
-      DEPLOY_ALL: 'true'  # Default to deploying all modules
 
     steps:
       - name: Checkout Repository
@@ -32,11 +31,8 @@ jobs:
         with:
           terraform_version: '1.1.0'
 
-      - name: Determine Modules to Deploy
-        run: |
-          if [ "${{ github.event.inputs.modules }}" != "all" ]; then
-            echo "DEPLOY_ALL=false" >> $GITHUB_ENV
-          fi
+      - name: Echo Modules to Deploy
+        run: echo "Modules to deploy: ${{ github.event.inputs.modules }}"
 
       - name: Terraform Init
         run: terraform init -input=false -backend=true
@@ -51,6 +47,6 @@ jobs:
         working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && env.DEPLOY_ALL == 'true'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && github.event.inputs.modules == 'all'
         run: terraform apply -auto-approve
         working-directory: ${{ env.TF_ROOT }}
