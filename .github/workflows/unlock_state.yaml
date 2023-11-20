@@ -12,16 +12,27 @@ jobs:
     name: Force Unlock Terraform State
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: './terraform/environments/dev'
+      TF_ROOT: './terraform/environments/dev'  # Adjust if your Terraform root directory is different
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: gcp-devops-pro-405617
+          export_default_credentials: true
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: '1.1.0'
+
+      - name: Terraform Init
+        run: terraform init -input=false -backend=true -reconfigure
+        working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Force Unlock
         run: terraform force-unlock -force ${{ github.event.inputs.lock_id }}
