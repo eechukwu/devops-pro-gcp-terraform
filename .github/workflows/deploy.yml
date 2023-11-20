@@ -1,18 +1,19 @@
 name: Terraform Deployment
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      modules:
+        description: 'Modules to deploy (e.g., network, compute_instance)'
+        required: true
+        default: 'all'  # Default to all if no specific module is specified
 
 jobs:
   terraform:
     name: Terraform CI/CD
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        resource: ["network", "compute_instance"]  # Update with actual resource names
+    env:
+      TF_ROOT: './terraform/environments/dev' # Terraform working directory
 
     steps:
       - name: Checkout Repository
@@ -32,17 +33,30 @@ jobs:
 
       - name: Terraform Init
         run: terraform init -input=false -backend=true
-        working-directory: ./terraform/environments/dev
+        working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Validate
         run: terraform validate
-        working-directory: ./terraform/environments/dev
+        working-directory: ${{ env.TF_ROOT }}
 
-      - name: Terraform Plan for Specific Resource
-        run: terraform plan -target=module.${{ matrix.resource }} -lock=false
-        working-directory: ./terraform/environments/dev
+      - name: Determine Target Modules
+        id: target_modules
+        run: |
+          TARGETS=""
+          IFS=',' read -ra MODULES <<< "${{ github.event.inputs.modules }}"
+          for module in "${MODULES[@]}"; do
+            if [ "$module" != "all" ]; then
+              TARGETS="$TARGETS -target=module.$module"
+            fi
+          done
+          echo "TARGETS=$TARGETS" >> $GITHUB_ENV
 
-      - name: Terraform Apply for Specific Resource
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -target=module.${{ matrix.resource }} -auto-approve -lock=false
-        working-directory: ./terraform/environments/dev
+      - name: Terraform Plan
+        if: env.TARGETS != ''
+        run: terraform plan ${{ env.TARGETS }}
+        working-directory: ${{ env.TF_ROOT }}
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && env.TARGETS != ''
+        run: terraform apply ${{ env.TARGETS }} -auto-approve
+        working-directory: ${{ env.TF_ROOT }}
