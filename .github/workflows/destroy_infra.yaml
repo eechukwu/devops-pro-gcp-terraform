@@ -1,4 +1,4 @@
-name: Terraform Destroy  # Name of the GitHub Actions workflow
+name: Destroy Infra With Terraform  # Name of the GitHub Actions workflow
 
 on:
   workflow_dispatch:  # Allows manual triggering from the GitHub UI

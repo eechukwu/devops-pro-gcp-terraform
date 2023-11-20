@@ -1,4 +1,4 @@
-name: Terraform Force Unlock
+name: Unlock Terraform State Files
 
 on:
   workflow_dispatch:
