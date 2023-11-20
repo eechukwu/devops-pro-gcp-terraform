@@ -1,0 +1,28 @@
+name: Terraform Force Unlock
+
+on:
+  workflow_dispatch:
+    inputs:
+      lock_id:
+        description: 'Lock ID to force unlock'
+        required: true
+
+jobs:
+  terraform-force-unlock:
+    name: Force Unlock Terraform State
+    runs-on: ubuntu-latest
+    env:
+      TF_ROOT: './terraform/environments/dev'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: '1.1.0'
+
+      - name: Terraform Force Unlock
+        run: terraform force-unlock -force ${{ github.event.inputs.lock_id }}
+        working-directory: ${{ env.TF_ROOT }}
