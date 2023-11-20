@@ -1,65 +1,75 @@
-name: Deployment Infrastructure
+name: Deploy Infra Via Terraform
 
+# Trigger for the workflow: manual trigger (workflow_dispatch) with inputs.
 on:
   workflow_dispatch:
     inputs:
       modules:
         description: 'Modules to deploy (e.g., "network", "compute_instance", or "all")'
         required: true
-        default: 'all'
+        default: 'all'  # Default input when none is provided.
 
 jobs:
+  # Define a single job named 'terraform-deploy'.
   terraform-deploy:
     name: Terraform CI/CD
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Run this job on the latest Ubuntu runner.
     env:
-      TF_ROOT: './terraform/environments/dev'
+      TF_ROOT: './terraform/environments/dev'  # Set the Terraform root directory as an environment variable.
 
     steps:
+      # Step 1: Checkout the GitHub repository to access Terraform files.
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      # Step 2: Set up Google Cloud environment for Terraform to interact with GCP.
       - name: Setup Google Cloud
         uses: google-github-actions/setup-gcloud@v0
         with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}  # Use a secret for GCP authentication.
           project_id: gcp-devops-pro-405617
           export_default_credentials: true
 
+      # Step 3: Set up Terraform with the specified version.
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: '1.1.0'
 
+      # Step 4: Initialize Terraform in the specified working directory.
       - name: Terraform Init
         run: terraform init -input=false -backend=true
         working-directory: ${{ env.TF_ROOT }}
 
+      # Step 5: Validate the Terraform files for syntax and configuration errors.
       - name: Terraform Validate
         run: terraform validate
         working-directory: ${{ env.TF_ROOT }}
 
+      # Step 6: Plan Terraform deployment. This step generates an execution plan.
       - name: Terraform Plan
         run: |
           if [ "${{ github.event.inputs.modules }}" == "all" ]; then
-            terraform plan
+            terraform plan  # Plan for all modules if 'all' is specified.
           else
             IFS=',' read -ra MODULES <<< "${{ github.event.inputs.modules }}"
             for module in "${MODULES[@]}"; do
-              terraform plan -target=module.$module
+              terraform plan -target=module.$module  # Plan for each specified module.
             done
           fi
         working-directory: ${{ env.TF_ROOT }}
 
+      # Step 7: Apply the Terraform plan to make changes to the infrastructure.
+      # This step runs only if the GitHub branch is 'main'.
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
         run: |
           if [ "${{ github.event.inputs.modules }}" == "all" ]; then
-            terraform apply -auto-approve
+            terraform apply -auto-approve  # Apply for all modules if 'all' is specified.
           else
             IFS=',' read -ra MODULES <<< "${{ github.event.inputs.modules }}"
             for module in "${MODULES[@]}"; do
-              terraform apply -auto-approve -target=module.$module
+              terraform apply -auto-approve -target=module.$module  # Apply for each specified module.
             done
           fi
         working-directory: ${{ env.TF_ROOT }}
