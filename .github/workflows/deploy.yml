@@ -6,14 +6,14 @@ on:
       modules:
         description: 'Modules to deploy (e.g., network, compute_instance)'
         required: true
-        default: 'all'  # Default to all if no specific module is specified
+        default: 'all'
 
 jobs:
   terraform:
     name: Terraform CI/CD
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: './terraform/environments/dev' # Terraform working directory
+      TF_ROOT: './terraform/environments/dev'
 
     steps:
       - name: Checkout Repository
@@ -50,13 +50,18 @@ jobs:
             fi
           done
           echo "TARGETS=$TARGETS" >> $GITHUB_ENV
+          echo "Determined targets: $TARGETS"
 
       - name: Terraform Plan
         if: env.TARGETS != ''
-        run: terraform plan ${{ env.TARGETS }}
+        run: |
+          echo "Running Terraform Plan with targets: ${{ env.TARGETS }}"
+          terraform plan ${{ env.TARGETS }}
         working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && env.TARGETS != ''
-        run: terraform apply ${{ env.TARGETS }} -auto-approve
+        run: |
+          echo "Running Terraform Apply with targets: ${{ env.TARGETS }}"
+          terraform apply ${{ env.TARGETS }} -auto-approve
         working-directory: ${{ env.TF_ROOT }}
