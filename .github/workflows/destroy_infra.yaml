@@ -29,5 +29,5 @@ jobs:
         working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
 
       - name: Terraform Destroy  # Step to destroy Terraform infrastructure
-        run: terraform destroy -auto-approve
+        run: terraform destroy -lock=false -auto-approve
         working-directory: ./terraform/environments/dev  # Specifies the working directory for the command
