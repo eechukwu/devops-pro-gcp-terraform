@@ -7,6 +7,10 @@ on:
         description: 'Modules to deploy (e.g., network, compute_instance)'
         required: true
         default: 'all'
+      force_unlock:
+        description: 'Set to true to force unlock Terraform state'
+        required: false
+        default: 'false'
 
 jobs:
   terraform:
@@ -14,14 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TF_ROOT: './terraform/environments/dev'
+      LOCK_ID: '1700469765024911'  # Replace with the actual lock ID
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-
-      - name: Echo Workflow Inputs
-        run: |
-          echo "Modules to deploy: ${{ github.event.inputs.modules }}"
 
       - name: Setup Google Cloud
         uses: google-github-actions/setup-gcloud@v0
@@ -35,6 +36,13 @@ jobs:
         with:
           terraform_version: '1.1.0'
 
+      - name: Force Unlock Terraform State (if requested)
+        if: ${{ github.event.inputs.force_unlock }} == 'true'
+        run: |
+          echo "Forcing unlock of Terraform state..."
+          terraform force-unlock -force ${{ env.LOCK_ID }}
+        working-directory: ${{ env.TF_ROOT }}
+
       - name: Terraform Init
         run: terraform init -input=false -backend=true
         working-directory: ${{ env.TF_ROOT }}
@@ -43,29 +51,11 @@ jobs:
         run: terraform validate
         working-directory: ${{ env.TF_ROOT }}
 
-      - name: Determine Target Modules
-        id: target_modules
-        run: |
-          TARGETS=""
-          IFS=',' read -ra MODULES <<< "${{ github.event.inputs.modules }}"
-          for module in "${MODULES[@]}"; do
-            if [ "$module" != "all" ]; then
-              TARGETS="$TARGETS -target=module.$module"
-            fi
-          done
-          echo "Determined targets: $TARGETS"
-          echo "TARGETS=$TARGETS" >> $GITHUB_ENV
-
       - name: Terraform Plan
-        run: |
-          echo "Running Terraform Plan with targets: $TARGETS"
-          terraform plan $TARGETS
+        run: terraform plan
         working-directory: ${{ env.TF_ROOT }}
-        if: env.TARGETS != '' || github.event.inputs.modules == 'all'
 
       - name: Terraform Apply
-        run: |
-          echo "Running Terraform Apply with targets: $TARGETS"
-          terraform apply $TARGETS -auto-approve
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+        run: terraform apply -auto-approve
         working-directory: ${{ env.TF_ROOT }}
-        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && (env.TARGETS != '' || github.event.inputs.modules == 'all')
