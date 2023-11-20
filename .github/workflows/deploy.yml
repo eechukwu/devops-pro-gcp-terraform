@@ -19,6 +19,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Echo Workflow Inputs
+        run: |
+          echo "Modules to deploy: ${{ github.event.inputs.modules }}"
+
       - name: Setup Google Cloud
         uses: google-github-actions/setup-gcloud@v0
         with:
@@ -49,19 +53,19 @@ jobs:
               TARGETS="$TARGETS -target=module.$module"
             fi
           done
-          echo "TARGETS=$TARGETS" >> $GITHUB_ENV
           echo "Determined targets: $TARGETS"
+          echo "TARGETS=$TARGETS" >> $GITHUB_ENV
 
       - name: Terraform Plan
-        if: env.TARGETS != ''
         run: |
-          echo "Running Terraform Plan with targets: ${{ env.TARGETS }}"
-          terraform plan ${{ env.TARGETS }}
+          echo "Running Terraform Plan with targets: $TARGETS"
+          terraform plan $TARGETS
         working-directory: ${{ env.TF_ROOT }}
+        if: env.TARGETS != '' || github.event.inputs.modules == 'all'
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && env.TARGETS != ''
         run: |
-          echo "Running Terraform Apply with targets: ${{ env.TARGETS }}"
-          terraform apply ${{ env.TARGETS }} -auto-approve
+          echo "Running Terraform Apply with targets: $TARGETS"
+          terraform apply $TARGETS -auto-approve
         working-directory: ${{ env.TF_ROOT }}
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && (env.TARGETS != '' || github.event.inputs.modules == 'all')
