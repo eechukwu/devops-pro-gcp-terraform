@@ -7,18 +7,13 @@ on:
         description: 'Modules to deploy (e.g., network, compute_instance)'
         required: true
         default: 'all'
-      force_unlock:
-        description: 'Set to true to force unlock Terraform state'
-        required: false
-        default: 'false'
 
 jobs:
-  terraform:
+  terraform-deploy:
     name: Terraform CI/CD
     runs-on: ubuntu-latest
     env:
       TF_ROOT: './terraform/environments/dev'
-      LOCK_ID: '1700469765024911'  # Replace with the actual lock ID
 
     steps:
       - name: Checkout Repository
@@ -35,13 +30,6 @@ jobs:
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: '1.1.0'
-
-      - name: Force Unlock Terraform State (if requested)
-        if: ${{ github.event.inputs.force_unlock }} == 'true'
-        run: |
-          echo "Forcing unlock of Terraform state..."
-          terraform force-unlock -force ${{ env.LOCK_ID }}
-        working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Init
         run: terraform init -input=false -backend=true
