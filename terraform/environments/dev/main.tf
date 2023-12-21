@@ -1,24 +1,35 @@
 terraform {
   backend "gcs" {
-    bucket = "devops-pro-gcp-terraform-2023"  # Replace with the name of your GCS bucket
+    bucket = "devops-pro-gcp-terraform-2023" # Replace with the name of your GCS bucket
     prefix = "terraform/state"
   }
 }
 
-module "compute_instance" {
-  source        = "../../modules/compute_instance"
-  instance_name = "test-instance-delete-2"
-  machine_type  = "e2-micro"      // Or any other type
-  zone          = "us-central1-a" // Or any other zone
+resource "google_compute_address" "ip_address" {
+  name = "external-ip"
+}
+
+locals {
+  access_config = {
+    nat_ip       = google_compute_address.ip_address.address
+    network_tier = "PREMIUM"
+  }
+}
+
+module "instance_template" {
+  source          = "terraform-google-modules/vm/google//modules/instance_template"
+  version         = "~> 10.0"
+  project_id      = var.project_id
+  subnetwork      = var.subnetwork
+  service_account = var.service_account
+  stack_type      = "IPV4_ONLY"
+  name_prefix     = "simple"
+  access_config   = [local.access_config]
 }
 
 provider "google" {
   project = "gcp-devops-pro-405617"
-  region  = "us-central1-a"  # Replace with your GCP region
+  region  = "us-central1-a" # Replace with your GCP region
   # Optionally specify the zone
-}
-
-module "network" {
-  source     = "../../modules/networks"
 }
 
