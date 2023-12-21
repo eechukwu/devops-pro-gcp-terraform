@@ -39,6 +39,7 @@ jobs:
       # Step 4: Initialize Terraform in the specified working directory.
       - name: Terraform Init with Upgrade
         run: |
+          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
           terraform init -input=false -backend=true -reconfigure -upgrade -var "module_variable_optional_attrs=true"
         working-directory: ${{ env.TF_ROOT }}
 
