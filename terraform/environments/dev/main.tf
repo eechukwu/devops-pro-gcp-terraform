@@ -17,7 +17,7 @@ locals {
 }
 
 module "instance_template" {
-  source          = "terraform-google-modules/vm/google"
+  source          = "terraform-google-modules/vm/google//modules/instance_template"
   version         = "v10.1.1"  # Specify the version you want to use
   project_id      = var.project_id
   subnetwork      = var.subnetwork
