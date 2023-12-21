@@ -1,63 +1,71 @@
 name: Deploy Infra Via Terraform
 
+# Trigger for the workflow: manual trigger (workflow_dispatch) with inputs.
 on:
   workflow_dispatch:
     inputs:
       modules:
         description: 'Modules to deploy (e.g., "network", "compute_instance", or "all")'
         required: true
-        default: 'all'
+        default: 'all'  # Default input when none is provided.
 
 jobs:
+  # Define a single job named 'terraform-deploy'.
   terraform-deploy:
-    runs-on: ubuntu-latest
+    name: Terraform CI/CD
+    runs-on: ubuntu-latest  # Run this job on the latest Ubuntu runner.
+    env:
+      TF_ROOT: './terraform/environments/dev'  # Set the Terraform root directory as an environment variable.
 
     steps:
+      # Step 1: Checkout the GitHub repository to access Terraform files.
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set up Google Cloud
-        run: |
-          echo "$GCP_SA_KEY" > gcp-sa-key.json
-          gcloud auth activate-service-account --key-file=gcp-sa-key.json
-          rm gcp-sa-key.json
-          gcloud config set project gcp-devops-pro-405617
-          gcloud config set compute/region europe-west2
-          gcloud config set compute/zone europe-west2-a
-          gcloud auth configure-docker
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      # Step 2: Set up Google Cloud environment for Terraform to interact with GCP.
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}  # Use a secret for GCP authentication.
+          project_id: gcp-devops-pro-405617
+          export_default_credentials: true
 
+      # Step 3: Set up Terraform with the specified version.
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: '1.1.0'
 
+      # Step 4: Initialize Terraform in the specified working directory.
       - name: Terraform Init
-        run: terraform -chdir=./terraform/environments/dev init -backend=false -get-plugins=false -input=false -lock=false -force-copy -no-color -reconfigure -var module_variable_optional_attrs=true
+        run: terraform -chdir=$TF_ROOT init -reconfigure -backend=false -get=false -input=false -lock=false -force-copy -no-color -var module_variable_optional_attrs=true
 
+      # Step 5: Validate the Terraform files for syntax and configuration errors.
       - name: Terraform Validate
-        run: terraform -chdir=./terraform/environments/dev validate
+        run: terraform -chdir=$TF_ROOT validate
 
+      # Step 6: Plan Terraform deployment. This step generates an execution plan.
       - name: Terraform Plan
         run: |
           if [ "${{ github.event.inputs.modules }}" == "all" ]; then
-            terraform -chdir=./terraform/environments/dev plan
+            terraform -chdir=$TF_ROOT plan  # Plan for all modules if 'all' is specified.
           else
             IFS=',' read -ra MODULES <<< "${{ github.event.inputs.modules }}"
             for module in "${MODULES[@]}"; do
-              terraform -chdir=./terraform/environments/dev plan -target=module.$module
+              terraform -chdir=$TF_ROOT plan -target=module.$module  # Plan for each specified module.
             done
           fi
 
+      # Step 7: Apply the Terraform plan to make changes to the infrastructure.
+      # This step runs only if the GitHub branch is 'main'.
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
         run: |
           if [ "${{ github.event.inputs.modules }}" == "all" ]; then
-            terraform -chdir=./terraform/environments/dev apply -auto-approve
+            terraform -chdir=$TF_ROOT apply -auto-approve  # Apply for all modules if 'all' is specified.
           else
             IFS=',' read -ra MODULES <<< "${{ github.event.inputs.modules }}"
             for module in "${MODULES[@]}"; do
-              terraform -chdir=./terraform/environments/dev apply -auto-approve -target=module.$module
+              terraform -chdir=$TF_ROOT apply -auto-approve -target=module.$module  # Apply for each specified module.
             done
           fi
