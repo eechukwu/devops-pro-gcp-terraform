@@ -38,7 +38,7 @@ jobs:
 
       # Step 4: Initialize Terraform in the specified working directory.
       - name: Terraform Init
-        run: terraform -chdir=$TF_ROOT init -reconfigure -backend=false -get=false -input=false -lock=false -force-copy -no-color -var module_variable_optional_attrs=true
+        run: terraform -chdir=$TF_ROOT init -reconfigure -backend=false -get=true -input=false -lock=false -force-copy -no-color -var module_variable_optional_attrs=true
 
       # Step 5: Validate the Terraform files for syntax and configuration errors.
       - name: Terraform Validate
