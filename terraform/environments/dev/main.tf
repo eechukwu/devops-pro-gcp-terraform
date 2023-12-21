@@ -17,8 +17,7 @@ locals {
 }
 
 module "instance_template" {
-  source          = "terraform-google-modules/vm/google"
-  version         = "~> 10.0"
+  source          = "terraform-google-modules/vm/google//modules/instance_template"
   project_id      = var.project_id
   subnetwork      = var.subnetwork
   service_account = var.service_account
@@ -29,7 +28,7 @@ module "instance_template" {
 
 provider "google" {
   project = "gcp-devops-pro-405617"
-  region  = "us-central1-a" # Replace with your GCP region
+  region  = "europe-west2" # Replace with your GCP region
   # Optionally specify the zone
 }
 
