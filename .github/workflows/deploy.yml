@@ -37,7 +37,7 @@ jobs:
           terraform_version: '1.0.7'  # Use the recommended Terraform version
 
       - name: Terraform Init
-        run: terraform init -input=false -backend=true
+        run: terraform init -input=false -backend=true -reconfigure
         working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Validate
