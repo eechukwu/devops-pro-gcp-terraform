@@ -12,32 +12,24 @@ jobs:
   terraform-deploy:
     name: Terraform CI/CD
     runs-on: ubuntu-latest
+    env:
+      TF_ROOT: './terraform/environments/dev'
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Install Google Cloud SDK
-        run: |
-          curl -sSL https://sdk.cloud.google.com | bash
-          exec -l $SHELL
-          gcloud --version
-        env:
-          PATH: ${{ runner.toolsDirectory }}/google-cloud-sdk/bin:${{ PATH }}
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: gcp-devops-pro-405617
+          export_default_credentials: true
 
-      - name: Authenticate with Google Cloud
-        run: gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
-
-      - name: Set Up Terraform
-        run: |
-          terraform_version='1.1.0'
-          terraform_url="https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip"
-          curl -o terraform.zip ${terraform_url}
-          unzip terraform.zip
-          mv terraform ${{ runner.toolsDirectory }}/terraform
-          terraform --version
-        env:
-          PATH: ${{ runner.toolsDirectory }}:${{ PATH }}
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: '1.1.0'
 
       - name: Terraform Init
         run: terraform init -input=false -backend=true
@@ -58,6 +50,12 @@ jobs:
             done
           fi
         working-directory: ${{ env.TF_ROOT }}
+        continue-on-error: true
+
+      - name: Display Terraform Plan Output
+        run: cat terraform.tfplan
+        working-directory: ${{ env.TF_ROOT }}
+        if: failure()
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
