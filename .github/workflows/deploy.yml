@@ -36,9 +36,6 @@ jobs:
         with:
           terraform_version: '1.0.7'  # Use the recommended Terraform version
 
-      - name: Enable experimental feature
-        run: terraform -chdir=$TF_ROOT init -backend=false -get-plugins=false -input=false -lock=false -force-copy -no-color -reconfigure -var "module_variable_optional_attrs=true"
-
       - name: Terraform Init
         run: terraform init -input=false -backend=true
         working-directory: ${{ env.TF_ROOT }}
