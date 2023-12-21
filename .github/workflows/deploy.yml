@@ -14,8 +14,6 @@ jobs:
   terraform-deploy:
     name: Terraform CI/CD
     runs-on: ubuntu-latest  # Run this job on the latest Ubuntu runner.
-    env:
-      TF_ROOT: './terraform/environments/dev'  # Set the Terraform root directory as an environment variable.
 
     steps:
       # Step 1: Checkout the GitHub repository to access Terraform files.
@@ -38,15 +36,13 @@ jobs:
 
       # Step 4: Initialize Terraform in the specified working directory.
       - name: Terraform Init with Upgrade
-        run: |
-          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
-          terraform init -input=false -backend=true -reconfigure -upgrade -var "module_variable_optional_attrs=true"
-        working-directory: ${{ env.TF_ROOT }}
+        run: terraform init -input=false -backend=true -reconfigure -upgrade -var "module_variable_optional_attrs=true"
+        working-directory: ./terraform/environments/dev
 
       # Step 5: Validate the Terraform files for syntax and configuration errors.
       - name: Terraform Validate
         run: terraform validate
-        working-directory: ${{ env.TF_ROOT }}
+        working-directory: ./terraform/environments/dev
 
       # Step 6: Plan Terraform deployment. This step generates an execution plan.
       - name: Terraform Plan
@@ -59,7 +55,7 @@ jobs:
               terraform plan -target=module.$module  # Plan for each specified module.
             done
           fi
-        working-directory: ${{ env.TF_ROOT }}
+        working-directory: ./terraform/environments/dev
 
       # Step 7: Apply the Terraform plan to make changes to the infrastructure.
       # This step runs only if the GitHub branch is 'main'.
@@ -74,4 +70,4 @@ jobs:
               terraform apply -auto-approve -target=module.$module  # Apply for each specified module.
             done
           fi
-        working-directory: ${{ env.TF_ROOT }}
+        working-directory: ./terraform/environments/dev
