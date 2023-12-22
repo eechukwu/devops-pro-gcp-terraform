@@ -1,9 +1,16 @@
+name: Terraform Workflow
+
+on:
+  push:
+    branches:
+      - main
+
 jobs:
   terraform-force-unlock:
     name: Force Unlock Terraform State
     runs-on: ubuntu-latest
     env:
-      TF_ROOT: './terraform/environments/dev'  # Adjust if your Terraform root directory is different
+      TF_ROOT: './terraform/environments/dev'
 
     steps:
       - name: Checkout Repository
@@ -22,7 +29,7 @@ jobs:
           terraform_version: '1.1.0'
 
       - name: Terraform Init
-        run: terraform init -input=false -backend=true -reconfigure -upgrade
+        run: terraform init -input=false -backend=true -reconfigure
         working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Force Unlock
