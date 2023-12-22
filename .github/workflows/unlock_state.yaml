@@ -30,7 +30,7 @@ jobs:
           terraform_version: '1.1.0'
 
       - name: Terraform Init
-        run: terraform init -input=false -backend=true -reconfigure
+        run: terraform init -input=false -backend=true -reconfigure  -upgrade
         working-directory: ${{ env.TF_ROOT }}
 
       - name: Terraform Force Unlock
