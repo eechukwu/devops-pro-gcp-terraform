@@ -1,4 +1,4 @@
-name: Terraform Workflow
+name: Deploy GCP Resources
 
 on:
   push:
