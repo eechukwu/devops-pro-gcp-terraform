@@ -5,40 +5,36 @@ on:
     branches:
       - main
 
-env:
-  TF_ROOT: './terraform/environments/dev'  # Set the Terraform root directory as an environment variable.
-
 jobs:
   terraform:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Setup Google Cloud
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: gcp-devops-pro-405617
-        export_default_credentials: true
+      # Step 1: Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: '1.1.0'
 
-    - name: Set up Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: latest
+      # Step 2: Set up Google Cloud environment for Terraform to interact with GCP.
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}  # Use a secret for GCP authentication.
+          project_id: gcp-devops-pro-405617
+          export_default_credentials: true
 
-    - name: Activate Service Account
-      run: gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
+      # Step 3: Initialize Terraform (specifying the dev environment path)
+      - name: Terraform Init
+        run: terraform -chdir=./terraform/environments/dev init
 
-    - name: Terraform Init
-      run: terraform -chdir=$TF_ROOT init -reconfigure -backend=false -get=true -input=false -lock=false -force-copy -no-color -var module_variable_optional_attrs=true
+      # Step 4: Validate Terraform configuration
+      - name: Terraform Validate
+        run: terraform -chdir=./terraform/environments/dev validate
 
-    - name: Terraform Validate
-      run: terraform -chdir=$TF_ROOT validate
-
-    - name: Terraform Plan
-      run: terraform -chdir=$TF_ROOT plan
-
-    - name: Terraform Apply
-      run: terraform -chdir=$TF_ROOT apply -auto-approve
+      # Step 5: Plan Terraform changes
+      - name: Terraform Plan
+        run: terraform -chdir=./terraform/environments/dev plan
