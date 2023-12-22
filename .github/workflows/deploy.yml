@@ -51,4 +51,4 @@ jobs:
 
       # Step 7: Plan Terraform changes
       - name: Terraform Apply
-        run: terraform -chdir=./terraform/environments/dev apply
+        run: terraform -chdir=./terraform/environments/dev apply -auto-approve 
