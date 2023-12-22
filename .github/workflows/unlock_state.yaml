@@ -1,14 +1,17 @@
 name: Terraform Force Unlock
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      unlock_code:
+        description: 'Unlock Code'
+        required: true
 
 jobs:
   terraform-force-unlock:
     runs-on: ubuntu-latest
-    name: unlock terraform
     env:
-      TF_ROOT: './terraform/environments/dev'  # Adjust if your Terraform root directory is different
+      TF_ROOT: './terraform/environments/dev'
 
     steps:
       - name: Checkout Repository
