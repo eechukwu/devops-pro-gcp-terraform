@@ -1,48 +1,35 @@
-name: Terraform Workflow
+name: Terraform Force Unlock
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:  # Manual trigger
 
 jobs:
-  terraform:
-    name: Force Unlock Terraform State
+  terraform-force-unlock:
     runs-on: ubuntu-latest
+    name: unlock terraform
+    env:
+      TF_ROOT: './terraform/environments/dev'  # Adjust if your Terraform root directory is different
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Step 1: Set up Terraform
-      - name: Set up Terraform
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v0
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: gcp-devops-pro-405617
+          export_default_credentials: true
+
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v1
         with:
           terraform_version: '1.1.0'
 
-      # Step 2: Set up Google Cloud environment for Terraform to interact with GCP.
-      - name: Setup Google Cloud
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}  # Use a secret for GCP authentication.
-          project_id: gcp-devops-pro-405617
-          export_default_credentials: true
-
-      # Step 3: Export Google Cloud credentials to a file
-      - name: Export Google Cloud Credentials
-        run: echo "$GCP_SA_KEY" > keyfile.json
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-
-      # Step 4: Set GOOGLE_APPLICATION_CREDENTIALS environment variable
-      - name: Set Google Cloud Credentials Environment Variable
-        run: echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/keyfile.json" >> $GITHUB_ENV
-
-      # Step 5: Initialize Terraform (specifying the dev environment path)
       - name: Terraform Init
-        run: terraform -chdir=./terraform/environments/dev init -input=false -upgrade -backend=true -reconfigure
+        run: terraform init -input=false -backend=true -reconfigure
+        working-directory: ${{ env.TF_ROOT }}
 
-      # Step 6: Validate Terraform configuration
       - name: Terraform Force Unlock
-        run: terraform force-unlock -force ${{ github.event.inputs.lock_id }}
+        run: terraform force-unlock -force ${{ github.event.inputs.unlock_code }}
         working-directory: ${{ env.TF_ROOT }}
