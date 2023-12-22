@@ -48,3 +48,7 @@ jobs:
       # Step 7: Plan Terraform changes
       - name: Terraform Plan
         run: terraform -chdir=./terraform/environments/dev plan
+
+      # Step 7: Plan Terraform changes
+      - name: Terraform Apply
+        run: terraform -chdir=./terraform/environments/dev apply
