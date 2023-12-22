@@ -28,8 +28,12 @@ jobs:
       with:
         terraform_version: latest
 
+    - name: Activate Service Account
+      run: gcloud auth activate-service-account --key-file=${{ secrets.GCP_SA_KEY }}
+
     - name: Terraform Init
-      run: terraform -chdir=$TF_ROOT init 
+      run: terraform -chdir=$TF_ROOT init -reconfigure -backend=false -get=true -input=false -lock=false -force-copy -no-color -var module_variable_optional_attrs=true
+
     - name: Terraform Validate
       run: terraform -chdir=$TF_ROOT validate
 
