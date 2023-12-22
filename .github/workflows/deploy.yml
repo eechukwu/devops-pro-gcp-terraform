@@ -37,7 +37,7 @@ jobs:
       - name: Set Google Cloud Credentials Environment Variable
         run: echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/keyfile.json" >> $GITHUB_ENV
 
-      # Step 5: Initialize Terraform (specifying the dev environment path)
+      # Step 5: Initialize Terraform. (specifying the dev environment path)
       - name: Terraform Init
         run: terraform -chdir=./terraform/environments/dev init -reconfigure -upgrade
 
