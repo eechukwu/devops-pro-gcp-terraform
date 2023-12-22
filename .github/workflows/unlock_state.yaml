@@ -40,7 +40,7 @@ jobs:
 
       # Step 5: Initialize Terraform (specifying the dev environment path)
       - name: Terraform Init
-        run: terraform -chdir=./terraform/environments/dev init -input=false -backend=true -reconfigure
+        run: terraform -chdir=./terraform/environments/dev init -input=false -upgrade -backend=true -reconfigure
 
       # Step 6: Validate Terraform configuration
       - name: Terraform Force Unlock
