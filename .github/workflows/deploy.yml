@@ -27,6 +27,12 @@ jobs:
           project_id: gcp-devops-pro-405617
           export_default_credentials: true
 
+      # Step 3.1: Export Google Cloud credentials
+      - name: Export Google Cloud Credentials
+        run: echo "$GCP_SA_KEY" > keyfile.json
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+
       # Step 3: Initialize Terraform (specifying the dev environment path)
       - name: Terraform Init
         run: terraform -chdir=./terraform/environments/dev init -reconfigure
