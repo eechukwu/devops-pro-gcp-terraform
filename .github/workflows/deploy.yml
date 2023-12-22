@@ -39,7 +39,7 @@ jobs:
 
       # Step 5: Initialize Terraform (specifying the dev environment path)
       - name: Terraform Init
-        run: terraform -chdir=./terraform/environments/dev init -reconfigure
+        run: terraform -chdir=./terraform/environments/dev init -reconfigure -upgrade
 
       # Step 6: Validate Terraform configuration
       - name: Terraform Validate
