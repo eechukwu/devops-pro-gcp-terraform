@@ -29,7 +29,7 @@ module "instance_template" {
 
 module "test-vpc-module" {
   source       = "terraform-google-modules/network/google"
-  version      = "~> 8.0"
+  version      = "~> 7.0"
   project_id   = var.project_id # Replace this with your project ID in quotes
   network_name = "my-custom-mode-network"
   mtu          = 1460
