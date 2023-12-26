@@ -1,9 +1,10 @@
 name: Deploy GCP Resources
 
 on:
+  workflow_dispatch:  # Allows manual triggering from the GitHub UI
   push:
-    branches:
-      - main
+    paths:
+      - 'path/to/your/folder/**'  # Specify the path to the folder you want to trigger the workflow on
 
 jobs:
   terraform:
