@@ -11,32 +11,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout your repository
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      # Checkout your repository
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    # Setup GCP Credentials
-    - name: Setup Google Cloud
-      uses: google-github-actions/auth@v2
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: gcp-devops-pro-405617
-        export_default_credentials: true
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-    # Setup Terraform
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: "1.3.0"  # specify your terraform version
+      # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: "1.3.0"  # specify your terraform version
 
-    # Initialize Terraform
-    - name: Terraform Init
-      run: terraform -chdir=./terraform/environments/dev init -reconfigure -upgrade
+      # Initialize Terraform
+      - name: Terraform Init
+        run: terraform -chdir=./terraform/environments/dev init -reconfigure -upgrade
 
-    # Validate Terraform configuration
-    - name: Terraform Validate
-      run: terraform -chdir=./terraform/environments/dev validate
+      # Validate Terraform configuration
+      - name: Terraform Validate
+        run: terraform -chdir=./terraform/environments/dev validate
 
-    # Apply Terraform
-    - name: Terraform Apply
-      run: terraform -chdir=./terraform/environments/dev apply -auto-approve
+      # Apply Terraform
+      - name: Terraform Apply
+        run: terraform -chdir=./terraform/environments/dev apply -auto-approve
