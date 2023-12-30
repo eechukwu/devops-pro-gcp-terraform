@@ -23,6 +23,12 @@ jobs:
         project_id: gcp-devops-pro-405617
         export_default_credentials: true
 
+    # Debugging: Print GCP Authentication Information (Remove in Production)
+    - name: Print GCP Auth Information (Debug)
+      run: |
+        gcloud auth list
+        gcloud config list
+
     # Setup Terraform
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
