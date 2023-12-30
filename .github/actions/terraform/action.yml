@@ -62,9 +62,15 @@ runs:
       shell: bash
 
     - name: Destroy Terraform Infrastructure
-      if: ${{ inputs.command == 'destroy' }}
+      if: ${{ inputs.command == 'destroy' && inputs.module_name == '' }}
       run: terraform -chdir=${{ inputs.working_directory }} destroy -auto-approve
       shell: bash
+    
+    - name: Destroy Specific Terraform Module
+      if: ${{ inputs.command == 'destroy' && inputs.module_name != '' }}
+      run: terraform -chdir=${{ inputs.working_directory }} destroy -auto-approve -target=module.${{ inputs.module_name }}
+      shell: bash
+
 
     - name: Unlock Terraform State
       if: ${{ inputs.command == 'unlock' && inputs.unlock_id != '' }}
