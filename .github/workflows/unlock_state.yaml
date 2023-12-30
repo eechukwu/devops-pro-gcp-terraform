@@ -1,27 +1,23 @@
-name: Terraform Force Unlock
+name: Unlock Terraform State
 
 on:
   workflow_dispatch:
     inputs:
-      unlock_code:
-        description: 'Unlock Code'
+      unlock_id:
+        description: 'Terraform state lock ID'
         required: true
 
 jobs:
-  terraform-force-unlock:
+  unlock:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Terraform and Google Cloud
-        uses: ./.github/workflows/setup-terraform-gcloud 
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Run Terraform Unlock
+        uses: ./.github/actions/terraform
         with:
-          terraform_version: '1.1.0'  # Adjust version as necessary
           gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: gcp-devops-pro-405617
-
-      - name: Terraform Init
-        run: terraform init -input=false -backend=true -reconfigure -upgrade
-        working-directory: ./terraform/environments/dev
-
-      - name: Terraform Force Unlock
-        run: terraform force-unlock -force ${{ github.event.inputs.unlock_code }}
-        working-directory: ./terraform/environments/dev
+          working_directory: 'terraform/environments/dev'
+          command: 'unlock'
+          unlock_id: ${{ github.event.inputs.unlock_id }}
