@@ -17,7 +17,7 @@ jobs:
 
     # Setup GCP Credentials
     - name: Setup Google Cloud
-      uses: google-github-actions/setup-gcloud@v2
+      uses: google-github-actions/auth@v2
       with:
         service_account_key: ${{ secrets.GCP_SA_KEY }}
         project_id: gcp-devops-pro-405617
