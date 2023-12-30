@@ -12,3 +12,4 @@ jobs:
     uses: eechukwu/devops-pro-gcp-terraform/.github/workflows/terraform_actions.yml@main
     with:
       terraform_command: 'apply -auto-approve'
+    secrets: inherit
