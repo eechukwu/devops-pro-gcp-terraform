@@ -18,7 +18,7 @@ jobs:
         with:
           gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
           working_directory: 'terraform/environments/dev'
-          command: 'init && terraform plan && terraform apply -auto-approve'
+          command: 'init -reconfigure && terraform plan && terraform apply -auto-approve'
 
         
 
