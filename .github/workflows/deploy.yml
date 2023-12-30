@@ -11,14 +11,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Setup Google Cloud SDK
-      - name: Setup Google Cloud
-        uses: google-github-actions/setup-gcloud@v2
+      # Authenticate to Google Cloud
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v0
         with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: gcp-devops-pro-405617
-          export_default_credentials: true
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # Authenticate and list GCP projects (for testing)
+      # Set GCP project ID
+      - name: Set GCP Project ID
+        run: gcloud config set project gcp-devops-pro-405617
+
+      # List GCP projects for testing authentication
       - name: List GCP Projects
         run: gcloud projects list
