@@ -17,5 +17,6 @@ jobs:
         uses: ./.github/actions/terraform
         with:
           command: 'init && terraform plan && terraform apply -auto-approve'
+        
 
 
