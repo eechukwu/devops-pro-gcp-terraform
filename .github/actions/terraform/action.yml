@@ -9,7 +9,7 @@ inputs:
     required: true
     default: 'terraform/environments/dev'
   command:
-    description: 'Terraform command to run'
+    description: 'Terraform command to run (apply or destroy)'
     required: true
 
 runs:
@@ -23,6 +23,20 @@ runs:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
 
-    - name: Run Terraform Command
-      run: terraform -chdir=${{ inputs.working_directory }} ${{ inputs.command }}
+    - name: Initialize Terraform
+      run: terraform -chdir=${{ inputs.working_directory }} init -reconfigure
+      shell: bash
+
+    - name: Plan Terraform Changes
+      run: terraform -chdir=${{ inputs.working_directory }} plan
+      shell: bash
+
+    - name: Apply Terraform Changes
+      if: ${{ inputs.command == 'apply' }}
+      run: terraform -chdir=${{ inputs.working_directory }} apply -auto-approve
+      shell: bash
+
+    - name: Destroy Terraform Infrastructure
+      if: ${{ inputs.command == 'destroy' }}
+      run: terraform -chdir=${{ inputs.working_directory }} destroy -auto-approve
       shell: bash
