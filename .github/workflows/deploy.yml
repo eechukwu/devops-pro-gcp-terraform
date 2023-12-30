@@ -3,7 +3,7 @@ name: Deploy to GCP with Terraform
 on:
   push:
     paths:
-      - 'terraform/environments/dev/main.tf'
+      - 'terraform/environments/dev/*'
   workflow_dispatch:
 
 jobs:
@@ -19,6 +19,7 @@ jobs:
           gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
           working_directory: 'terraform/environments/dev'
           command: 'init -reconfigure && terraform plan && terraform apply -auto-approve'
+
 
         
 
