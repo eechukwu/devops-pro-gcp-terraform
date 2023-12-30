@@ -3,12 +3,10 @@ description: 'Run Terraform commands'
 inputs:
   gcp_sa_key:
     description: 'GCP Service Account Key'
-    required: false
-    default: ${{ github.event.inputs.GCP_SA_KEY }}
+    required: true
   working_directory:
     description: 'Terraform working directory'
-    required: false
-    default: 'terraform/environments/dev'
+    required: true
   command:
     description: 'Terraform command to run'
     required: true
@@ -16,14 +14,10 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup GCP Credentials
-      if: inputs.gcp_sa_key != ''
-      run: |
-        echo "$GCP_SA_KEY" > gcp-credentials.json
-        echo "GOOGLE_APPLICATION_CREDENTIALS=${PWD}/gcp-credentials.json" >> $GITHUB_ENV
-      env:
-        GCP_SA_KEY: ${{ inputs.gcp_sa_key }}
-      shell: bash
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ inputs.gcp_sa_key }}
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
