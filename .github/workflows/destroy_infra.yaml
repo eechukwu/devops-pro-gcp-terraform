@@ -1,7 +1,11 @@
-name: Destroy Infra With Terraform
+name: Destroy Specific Terraform Module
 
 on:
   workflow_dispatch:
+    inputs:
+      module_name:
+        description: 'Name of the Terraform module to destroy (e.g., test-vpc-module)'
+        required: false
 
 jobs:
   destroy:
@@ -16,3 +20,5 @@ jobs:
           gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
           working_directory: 'terraform/environments/dev'
           command: 'destroy'
+          module_name: ${{ github.event.inputs.module_name }}
+
