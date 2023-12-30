@@ -26,3 +26,4 @@ jobs:
 
       - name: Terraform Command
         run: terraform -chdir=./terraform/environments/dev ${{ inputs.terraform_command }}
+
