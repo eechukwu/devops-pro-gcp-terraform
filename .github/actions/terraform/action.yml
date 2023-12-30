@@ -15,6 +15,10 @@ inputs:
     description: 'Terraform state lock ID (required for unlock command)'
     required: false
     default: ''
+  module_name:
+    description: 'Specific Terraform module to target'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -46,10 +50,15 @@ runs:
     - name: Plan Terraform Changes
       run: terraform -chdir=${{ inputs.working_directory }} plan
       shell: bash
-
+      
     - name: Apply Terraform Changes
-      if: ${{ inputs.command == 'apply' }}
+      if: ${{ inputs.command == 'apply' && inputs.module_name == '' }}
       run: terraform -chdir=${{ inputs.working_directory }} apply -auto-approve
+      shell: bash
+
+    - name: Apply Terraform Changes to Specific Module
+      if: ${{ inputs.command == 'apply' && inputs.module_name != '' }}
+      run: terraform -chdir=${{ inputs.working_directory }} apply -auto-approve -target=module.${{ inputs.module_name }}
       shell: bash
 
     - name: Destroy Terraform Infrastructure
