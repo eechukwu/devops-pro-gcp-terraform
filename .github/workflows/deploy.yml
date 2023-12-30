@@ -8,6 +8,6 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/terraform_actions.yml
+    uses: terraform_actions.yml
     with:
       terraform_command: 'apply -auto-approve'
