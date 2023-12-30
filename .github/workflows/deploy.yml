@@ -12,5 +12,5 @@ jobs:
     #uses: eechukwu/devops-pro-gcp-terraform/.github/workflows/terraform_actions.yml@main
     with:
       #terraform_command: 'init plan validate apply -auto-approve'
-      terraform_command: 'init && terraform plan && terraform apply -auto-approve'
+      terraform_command: 'init -reconfigure && terraform validate && terraform plan && terraform apply -auto-approve'
     secrets: inherit
