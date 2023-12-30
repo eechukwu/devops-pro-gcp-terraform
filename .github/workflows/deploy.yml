@@ -1,59 +1,24 @@
-name: Deploy to GCP with Terraform
+name: Test GCP Service Account Key
 
-on:
-  push:
-    paths:
-      - 'terraform/environments/dev/main.tf'
+on: 
   workflow_dispatch:
 
 jobs:
-  deploy:
+  test-gcp-auth:
     runs-on: ubuntu-latest
-
     steps:
-    # Checkout your repository
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      # Checkout Repository
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    # Setup GCP Credentials for gcloud (optional, for debugging)
-    - name: Setup Google Cloud for gcloud
-      uses: google-github-actions/setup-gcloud@v2
-      with:
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        project_id: gcp-devops-pro-405617
-        export_default_credentials: true
+      # Setup Google Cloud SDK
+      - name: Setup Google Cloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: gcp-devops-pro-405617
+          export_default_credentials: true
 
-    # Debugging: Print GCP Authentication Information (Remove in Production)
-    - name: Print GCP Auth Information (Debug)
-      run: |
-        gcloud auth list
-        gcloud config list
-
-    # Setup GCP Credentials for Terraform
-    - name: Setup GCP Credentials for Terraform
-      run: |
-        echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
-        echo "GOOGLE_APPLICATION_CREDENTIALS=${PWD}/gcp-key.json" >> $GITHUB_ENV
-
-    # Setup Terraform
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-      with:
-        terraform_version: "1.3.0"
-
-    # Initialize Terraform
-    - name: Terraform Init
-      run: terraform -chdir=./terraform/environments/dev init -reconfigure -upgrade
-
-    # Validate Terraform configuration
-    - name: Terraform Validate
-      run: terraform -chdir=./terraform/environments/dev validate
-
-    # Apply Terraform
-    - name: Terraform Apply
-      run: terraform -chdir=./terraform/environments/dev apply -auto-approve
-
-    # Clean up GCP Credentials File
-    - name: Clean up GCP Credentials
-      if: always()
-      run: rm -f gcp-key.json
+      # Authenticate and list GCP projects (for testing)
+      - name: List GCP Projects
+        run: gcloud projects list
