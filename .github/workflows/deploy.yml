@@ -8,9 +8,14 @@ on:
 
 jobs:
   deploy:
-    uses: ./.github/workflows/terraform_actions.yml 
-    with:
-      terraform_command: 'init -reconfigure && validate && plan'
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Run Terraform
+        uses: ./.github/actions/terraform
+        with:
+          command: 'init && terraform plan && terraform apply -auto-approve'
 
 
