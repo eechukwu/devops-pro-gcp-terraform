@@ -13,13 +13,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      # Debugging: List files in the Terraform directory
-      - name: List Terraform files
-        run: ls -l ${{ github.workspace }}/terraform/environments/dev
-
       - name: Run Terraform
         uses: ./.github/actions/terraform
         with:
           gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
           working_directory: 'terraform/environments/dev'
-          command: 'init -reconfigure && terraform plan && terraform apply -auto-approve'
+          command: 'apply'
