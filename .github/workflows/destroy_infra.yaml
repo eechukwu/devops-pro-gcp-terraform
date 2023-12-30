@@ -7,17 +7,26 @@ jobs:
   terraform-destroy:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup Terraform and Google Cloud
-        uses: ./.github/workflows/setup-terraform-gcloud 
+      # Checkout your repository
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      # Authenticate to Google Cloud using google-github-actions/auth@v2
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          terraform_version: '1.3.0'
-          gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: gcp-devops-pro-405617
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
 
+      # Setup Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: "1.3.0"  # specify your terraform version
+
+      # Initialize Terraform
       - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform/environments/dev
+        run: terraform -chdir=./terraform/environments/dev init -reconfigure
 
+      # Destroy Terraform infrastructure
       - name: Terraform Destroy
-        run: terraform destroy -auto-approve
-        working-directory: ./terraform/environments/dev
+        run: terraform -chdir=./terraform/environments/dev destroy -auto-approve
