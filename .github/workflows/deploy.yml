@@ -9,8 +9,7 @@ on:
 jobs:
   deploy:
     uses: ./.github/workflows/terraform_actions.yml 
-    #uses: eechukwu/devops-pro-gcp-terraform/.github/workflows/terraform_actions.yml@main
     with:
-      #terraform_command: 'init plan validate apply -auto-approve'
-      terraform_command: 'init -reconfigure'
+      terraform_command: 'init -reconfigure && validate && plan'
     secrets: inherit
+
