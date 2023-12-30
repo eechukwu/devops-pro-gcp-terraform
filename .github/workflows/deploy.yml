@@ -8,33 +8,6 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      # Checkout your repository
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      # Authenticate to Google Cloud
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      # Setup Terraform
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: "1.3.0"  # specify your terraform version
-
-      # Initialize Terraform
-      - name: Terraform Init
-        run: terraform -chdir=./terraform/environments/dev init -reconfigure -upgrade
-
-      # Validate Terraform configuration
-      - name: Terraform Validate
-        run: terraform -chdir=./terraform/environments/dev validate
-
-      # Apply Terraform
-      - name: Terraform Apply
-        run: terraform -chdir=./terraform/environments/dev apply -auto-approve
+    uses: ./.github/workflows/terraform_actions.yml
+    with:
+      terraform_command: 'apply -auto-approve'
