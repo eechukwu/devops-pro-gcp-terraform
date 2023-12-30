@@ -1,10 +1,11 @@
 name: Deploy to GCP with Terraform
 
 on:
-  push:
-    paths:
-      - 'terraform/environments/dev/*'
   workflow_dispatch:
+    inputs:
+      module_name:
+        description: 'Name of the Terraform module to deploy (e.g., test-vpc-module)'
+        required: false
 
 jobs:
   deploy:
@@ -19,3 +20,4 @@ jobs:
           gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
           working_directory: 'terraform/environments/dev'
           command: 'apply'
+          module_name: ${{ github.event.inputs.module_name }}
