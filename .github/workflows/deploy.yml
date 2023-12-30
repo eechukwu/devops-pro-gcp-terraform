@@ -16,7 +16,10 @@ jobs:
       - name: Run Terraform
         uses: ./.github/actions/terraform
         with:
+          gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+          working_directory: 'terraform/environments/dev'
           command: 'init && terraform plan && terraform apply -auto-approve'
+
         
 
 
