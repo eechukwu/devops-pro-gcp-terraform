@@ -15,8 +15,8 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    # Setup GCP Credentials
-    - name: Setup Google Cloud
+    # Setup GCP Credentials for gcloud (optional, for debugging)
+    - name: Setup Google Cloud for gcloud
       uses: google-github-actions/setup-gcloud@v2
       with:
         service_account_key: ${{ secrets.GCP_SA_KEY }}
@@ -29,11 +29,17 @@ jobs:
         gcloud auth list
         gcloud config list
 
+    # Setup GCP Credentials for Terraform
+    - name: Setup GCP Credentials for Terraform
+      run: |
+        echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
+        echo "GOOGLE_APPLICATION_CREDENTIALS=${PWD}/gcp-key.json" >> $GITHUB_ENV
+
     # Setup Terraform
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
-        terraform_version: "1.3.0"  # specify your terraform version
+        terraform_version: "1.3.0"
 
     # Initialize Terraform
     - name: Terraform Init
@@ -46,3 +52,8 @@ jobs:
     # Apply Terraform
     - name: Terraform Apply
       run: terraform -chdir=./terraform/environments/dev apply -auto-approve
+
+    # Clean up GCP Credentials File
+    - name: Clean up GCP Credentials
+      if: always()
+      run: rm -f gcp-key.json
