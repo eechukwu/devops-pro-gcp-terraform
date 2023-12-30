@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Terraform and Google Cloud
-        uses: devops-pro-gcp-terraform/.github/actions/setup-terraform-gcloud@main
+        uses: ./devops-pro-gcp-terraform/.github/actions/setup-terraform-gcloud@main
         with:
           terraform_version: '1.3.0'
           gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
