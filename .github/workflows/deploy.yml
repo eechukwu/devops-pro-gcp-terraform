@@ -21,3 +21,4 @@ jobs:
           working_directory: 'terraform/environments/dev'
           command: 'apply'
           module_name: ${{ github.event.inputs.module_name }}
+
