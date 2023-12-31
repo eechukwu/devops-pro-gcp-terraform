@@ -1,12 +1,17 @@
 terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 4.0"
+    }
+  }
   backend "gcs" {
-    bucket = "devops-pro-gcp-terraform-2023" # Replace with the name of your GCS bucket
+    bucket = "devops-pro-gcp-terraform-2023"
     prefix = "terraform/state"
   }
 }
 
 provider "google" {
-  version = "~> 4.0"
   project = "gcp-devops-pro-405617"
   region  = "europe-west2" # Replace with your GCP region
   # Optionally specify the zone
