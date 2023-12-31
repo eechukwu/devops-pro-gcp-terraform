@@ -40,7 +40,7 @@ resource "google_compute_address" "ip_address" {
 
 module "instance_template" {
   source          = "terraform-google-modules/vm/google//modules/instance_template"
-  version         = "v9.0.0"  # Specify the version you want to use
+  #version         = "v9.0.0"  # Specify the version you want to use
   project_id      = var.project_id
   subnetwork      = var.subnetwork
   service_account = var.service_account
@@ -51,7 +51,7 @@ module "instance_template" {
 
 module "test-vpc-module" {
   source       = "terraform-google-modules/network/google"
-  version      = "~> 7.0"
+  #version      = "~> 7.0"
   project_id   = var.project_id # Replace this with your project ID in quotes
   network_name = "gcp-certs-network"
   mtu          = 1460
@@ -84,7 +84,7 @@ module "test-vpc-module" {
 
 module "gke" {
   source  = "terraform-google-modules/kubernetes-engine/google"
-  version = "~> 29.0"
+  #version = "~> 29.0"
 
   project_id                  = var.project_id
   name                        = "${local.cluster_type}-cluster${var.cluster_name_suffix}"
