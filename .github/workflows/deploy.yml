@@ -14,28 +14,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Set up Terraform (Version 1.3)
-        uses: hashicorp/setup-terraform@v1
-        with:
-          terraform_version: "1.6.6"
-
-      - name: Print Terraform Version
-        run: terraform version
-
-      - name: Initialize Terraform
-        run: |
-          terraform -chdir=${{ github.workspace }}/terraform/environments/dev init
-          ls -la ${{ github.workspace }}/terraform/environments/dev/.terraform
-          cat ${{ github.workspace }}/terraform/environments/dev/.terraform.lock.hcl
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Print Provider Versions
-        run: cat ${{ github.workspace }}/terraform/environments/dev/.terraform.lock.hcl
-
-      - name: Debug Terraform Providers
-        run: terraform providers
-
       - name: Run Terraform
         uses: ./.github/actions/terraform
         with:
@@ -43,5 +21,3 @@ jobs:
           working_directory: 'terraform/environments/dev'
           command: 'apply'
           module_name: ${{ github.event.inputs.module_name }}
-
-
