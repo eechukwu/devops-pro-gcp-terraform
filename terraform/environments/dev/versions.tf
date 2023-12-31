@@ -15,11 +15,4 @@ terraform {
       version = ">= 2.1"
     }
   }
-  provider_meta "google" {
-    module_name = "blueprints/terraform/terraform-google-kubernetes-engine:private-cluster/v29.0.0"
-  }
-  backend "gcs" {
-    bucket = "devops-pro-gcp-terraform-2023"
-    prefix = "terraform/state"
-  }
 }
