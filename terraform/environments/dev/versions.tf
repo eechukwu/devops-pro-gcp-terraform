@@ -23,9 +23,12 @@ terraform {
     prefix = "terraform/state"
   }
   provider "kubernetes" {
-  host                   = "https://${module.gke.endpoint}"
-  token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(module.gke.ca_certificate)
-}
-
+    host                   = "https://${module.gke.endpoint}"
+    token                  = data.google_client_config.default.access_token
+    cluster_ca_certificate = base64decode(module.gke.ca_certificate)
+  } 
+  provider "google" {
+    project = "gcp-devops-pro-405617"
+    region  = "europe-west2" # Replace with your GCP region
+  }
 }
