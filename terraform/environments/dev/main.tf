@@ -1,22 +1,3 @@
-terraform {
-  required_providers {
-    google = {
-      source  = "hashicorp/google"
-      version = "~> 4.0"
-    }
-  }
-  backend "gcs" {
-    bucket = "devops-pro-gcp-terraform-2023"
-    prefix = "terraform/state"
-  }
-}
-
-provider "google" {
-  project = "gcp-devops-pro-405617"
-  region  = "europe-west2" # Replace with your GCP region
-  # Optionally specify the zone
-}
-
 locals {
   access_config = {
     nat_ip       = google_compute_address.ip_address.address
@@ -26,13 +7,6 @@ locals {
 }
 
 data "google_client_config" "default" {}
-
-provider "kubernetes" {
-  host                   = "https://${module.gke.endpoint}"
-  token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(module.gke.ca_certificate)
-}
-
 
 resource "google_compute_address" "ip_address" {
   name = "external-ip"
