@@ -6,6 +6,7 @@ terraform {
 }
 
 provider "google" {
+  version = "~> 4.0"
   project = "gcp-devops-pro-405617"
   region  = "europe-west2" # Replace with your GCP region
   # Optionally specify the zone
