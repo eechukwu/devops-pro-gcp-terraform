@@ -59,3 +59,28 @@ runs:
       if: ${{ inputs.command == 'unlock' && inputs.unlock_id != '' }}
       run: terraform -chdir=${{ inputs.working_directory }} force-unlock ${{ inputs.unlock_id }}
       shell: bash
+
+  # Retag Top 5 Most Recent Docker Images as Rollback
+    - name: Retag Docker Images
+      run: |
+        FULL_IMAGE_NAME="${{ env.GCP_REGISTRY_HOST }}/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_REPOSITORY }}/${{ env.DOCKER_IMAGE_NAME }}"
+        DATE_TAG=$(date "+%Y%m%d%H%M%S")
+
+        # Configure Docker to authenticate via gcloud
+        gcloud auth configure-docker ${{ env.GCP_REGISTRY_HOST }}
+
+        # Fetch the latest 6 image tags excluding 'latest'
+        IFS=$'\n' read -d '' -r -a TAGS < <(gcloud container images list-tags "$FULL_IMAGE_NAME" --limit=6 --format='get(tags)' | grep -v "${{ env.DOCKER_IMAGE_TAG_EXCLUDE }}" | head -n 5 && printf '\0')
+        unset IFS
+
+        # Process tags for rollback
+        for TAG in "${TAGS[@]}"; do
+          if [[ -n "$TAG" ]]; then
+            NEW_TAG="rollback-image-${DATE_TAG}-${TAG}"
+            echo "Tagging and pushing: ${FULL_IMAGE_NAME}:${TAG} as ${FULL_IMAGE_NAME}:${NEW_TAG}"
+            
+            docker pull "${FULL_IMAGE_NAME}:${TAG}"
+            docker tag "${FULL_IMAGE_NAME}:${TAG}" "${FULL_IMAGE_NAME}:${NEW_TAG}"
+            docker push "${FULL_IMAGE_NAME}:${NEW_TAG}"
+          fi
+        done
